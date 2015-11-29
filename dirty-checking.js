@@ -13,17 +13,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   };
 
-  db.onClick = function(selector, cb) {
-    var domElement = document.querySelector(selector);
-    domElement.addEventListener('click', function() {
-      cb();
-      db.rerender();
-    });
-  };
-
   compileDom();
 
   function compileDom() {
+    // db-bind
     var dbBindElements = document.querySelectorAll('[db-bind]');
 
     Array.prototype.forEach.call(dbBindElements, function(element) {
@@ -47,6 +40,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       }
     });
+
+
+    // EVENT LISTENERS
+    var events = ['click', 'dbclick', 'keydown'];
+
+    events.forEach(function(event) {
+      var attributeName = 'db-' + event;
+      var selector = '[' + attributeName + ']';
+
+      var elements = document.querySelectorAll(selector);
+
+      Array.prototype.forEach.call(elements, function(element) {
+        element.addEventListener(event, function(e) {
+          var cbName = element.attributes.getNamedItem(attributeName).value;
+          var cb = db.model[cbName];
+          cb();
+          db.rerender();
+        });
+      });
+    });
+
   }
 });
 
@@ -61,7 +75,7 @@ window.addEventListener('load', function() {
   2.1 Look for db-bind
     2.1.1 Add to watch list
     2.1.2 If it's an input field, event listener
-  2.2 Look for db-click, db-change etc. (TODO)
+  2.2 Look for db-click, db-change etc.
 3. Write rerender function
 4. Call rerender() when other scripts finish executing
 
