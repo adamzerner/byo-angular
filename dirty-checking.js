@@ -1,3 +1,5 @@
+// requires jquery
+
 var db = {};
 db.model = {};
 
@@ -13,11 +15,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   };
 
-  compileDom();
+  compileDom(document);
 
-  function compileDom() {
-    // db-bind
-    var dbBindElements = document.querySelectorAll('[db-bind]');
+  function compileDom(root) {
+    dbBind(root);
+    dbEvent(root);
+    dbTemplate(root);
+  }
+
+  function dbBind(root) {
+    var dbBindElements = root.querySelectorAll('[db-bind]');
 
     Array.prototype.forEach.call(dbBindElements, function(element) {
       var modelProperty = element.attributes.getNamedItem('db-bind').value;
@@ -40,16 +47,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       }
     });
+  }
 
-
-    // EVENT LISTENERS
+  function dbEvent(root) {
     var events = ['click', 'dbclick', 'keydown'];
 
     events.forEach(function(event) {
       var attributeName = 'db-' + event;
       var selector = '[' + attributeName + ']';
 
-      var elements = document.querySelectorAll(selector);
+      var elements = root.querySelectorAll(selector);
 
       Array.prototype.forEach.call(elements, function(element) {
         element.addEventListener(event, function(e) {
@@ -60,23 +67,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       });
     });
+  }
 
+  function dbTemplate(root) {
+    var dbTemplateElements = root.querySelectorAll('[db-template]');
+    Array.prototype.forEach.call(dbTemplateElements, function(element) {
+      var templateUrl = element.attributes.getNamedItem('db-template').value;
+      $.get(templateUrl, function(data) {
+        $(element).html(data);
+        compileDom(element);
+        db.rerender();
+      });
+    });
   }
 });
 
 window.addEventListener('load', function() {
   db.rerender();
 });
-
-/*
-
-1. Wait for DOM to be available
-2. Run through DOM
-  2.1 Look for db-bind
-    2.1.1 Add to watch list
-    2.1.2 If it's an input field, event listener
-  2.2 Look for db-click, db-change etc.
-3. Write rerender function
-4. Call rerender() when other scripts finish executing
-
-*/
